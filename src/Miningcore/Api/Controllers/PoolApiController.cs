@@ -129,7 +129,7 @@ public class PoolApiController : ApiControllerBase
         response.Pool.TotalPaid = await cf.Run(con => statsRepo.GetTotalPoolPaymentsAsync(con, pool.Id, ct));
         response.Pool.TotalBlocks = await cf.Run(con => blocksRepo.GetPoolBlockCountAsync(con, pool.Id, ct));
         response.Pool.LastPoolBlockTime = await cf.Run(con => blocksRepo.GetLastPoolBlockTimeAsync(con, pool.Id));
-
+        response.Difficulties = await cf.Run(con => shareRepo.GetDifficulties(con, ct));
         var from = clock.Now.AddHours(-topMinersRange);
 
         response.Pool.TopMiners = (await cf.Run(con => statsRepo.PagePoolMinersByHashrateAsync(con, pool.Id, from, 0, 15, ct)))
@@ -568,7 +568,7 @@ public class PoolApiController : ApiControllerBase
         if(string.IsNullOrEmpty(address))
             throw new ApiException("Invalid or missing miner address", HttpStatusCode.NotFound);
 
-        var result = await cf.Run(con=> minerRepo.GetSettingsAsync(con, null, pool.Id, address));
+        var result = await cf.Run(con => minerRepo.GetSettingsAsync(con, null, pool.Id, address));
 
         if(result == null)
             throw new ApiException("No settings found", HttpStatusCode.NotFound);
@@ -592,14 +592,14 @@ public class PoolApiController : ApiControllerBase
             throw new ApiException("Invalid IP address", HttpStatusCode.BadRequest);
 
         // fetch recent IPs
-        var ips = await cf.Run(con=> shareRepo.GetRecentyUsedIpAddressesAsync(con, null, poolId, address, ct));
+        var ips = await cf.Run(con => shareRepo.GetRecentyUsedIpAddressesAsync(con, null, poolId, address, ct));
 
         // any known ips?
         if(ips == null || ips.Length == 0)
             throw new ApiException("Address not recently used for mining", HttpStatusCode.NotFound);
 
         // match?
-        if(!ips.Any(x=> IPAddress.TryParse(x, out var ipAddress) && ipAddress.IsEqual(requestIp)))
+        if(!ips.Any(x => IPAddress.TryParse(x, out var ipAddress) && ipAddress.IsEqual(requestIp)))
             throw new ApiException("None of the recently used IP addresses matches the request", HttpStatusCode.Forbidden);
 
         // map settings
@@ -617,7 +617,7 @@ public class PoolApiController : ApiControllerBase
         {
             await minerRepo.UpdateSettingsAsync(con, tx, mapped);
 
-            logger.Info(()=> $"Updated settings for pool {pool.Id}, miner {address}");
+            logger.Info(() => $"Updated settings for pool {pool.Id}, miner {address}");
 
             var result = await minerRepo.GetSettingsAsync(con, tx, mapped.PoolId, mapped.Address);
             return mapper.Map<Responses.MinerSettings>(result);

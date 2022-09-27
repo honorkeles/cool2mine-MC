@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
+
 using Miningcore.Blockchain;
 using Miningcore.Configuration;
 using Miningcore.Mining;
+
 using Newtonsoft.Json.Linq;
 
 namespace Miningcore.Api.Responses;
@@ -77,4 +79,10 @@ public partial class PoolInfo
 public class GetPoolsResponse
 {
     public PoolInfo[] Pools { get; set; }
+}
+
+public class PoolDifficulty
+{
+    public string PoolId { get; set; }
+    public double Difficulty { get; set; }
 }
