@@ -1,4 +1,6 @@
 using System.Data;
+
+using Miningcore.Api.Responses;
 using Miningcore.Persistence.Model;
 using Miningcore.Persistence.Model.Projections;
 
@@ -16,7 +18,7 @@ public interface IShareRepository
     Task<double?> GetEffectiveAccumulatedShareDifficultyBetweenAsync(IDbConnection con, string poolId, DateTime start, DateTime end, CancellationToken ct);
     Task<MinerWorkerHashes[]> GetHashAccumulationBetweenAsync(IDbConnection con, string poolId, DateTime start, DateTime end, CancellationToken ct);
     Task<string[]> GetRecentyUsedIpAddressesAsync(IDbConnection con, IDbTransaction tx, string poolId, string miner, CancellationToken ct);
-
+    Task<PoolDifficulty[]> GetDifficulties(IDbConnection con, CancellationToken ct);
     Task<KeyValuePair<string, double>[]> GetAccumulatedUserAgentShareDifficultyBetweenAsync(IDbConnection con, string poolId,
         DateTime start, DateTime end, bool byVersione, CancellationToken ct);
 }

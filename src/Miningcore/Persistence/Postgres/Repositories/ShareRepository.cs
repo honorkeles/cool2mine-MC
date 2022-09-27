@@ -1,10 +1,16 @@
 using System.Data;
+
 using AutoMapper;
+
 using Dapper;
+
+using Miningcore.Api.Responses;
 using Miningcore.Persistence.Model;
 using Miningcore.Persistence.Model.Projections;
 using Miningcore.Persistence.Repositories;
+
 using Npgsql;
+
 using NpgsqlTypes;
 
 namespace Miningcore.Persistence.Postgres.Repositories;
@@ -72,14 +78,14 @@ public class ShareRepository : IShareRepository
     {
         const string query = "SELECT count(*) FROM shares WHERE poolid = @poolId AND miner = @miner";
 
-        return con.QuerySingleAsync<long>(new CommandDefinition(query, new { poolId, miner}, tx, cancellationToken: ct));
+        return con.QuerySingleAsync<long>(new CommandDefinition(query, new { poolId, miner }, tx, cancellationToken: ct));
     }
 
     public async Task DeleteSharesByMinerAsync(IDbConnection con, IDbTransaction tx, string poolId, string miner, CancellationToken ct)
     {
         const string query = "DELETE FROM shares WHERE poolid = @poolId AND miner = @miner";
 
-        await con.ExecuteAsync(new CommandDefinition(query, new { poolId, miner}, tx, cancellationToken: ct));
+        await con.ExecuteAsync(new CommandDefinition(query, new { poolId, miner }, tx, cancellationToken: ct));
     }
 
     public async Task DeleteSharesBeforeAsync(IDbConnection con, IDbTransaction tx, string poolId, DateTime before, CancellationToken ct)
@@ -135,5 +141,9 @@ public class ShareRepository : IShareRepository
 
         return (await con.QueryAsync<string>(new CommandDefinition(query, new { poolId, miner }, tx, cancellationToken: ct)))
             .ToArray();
+    }
+    public async Task<PoolDifficulty[]> GetDifficulties(IDbConnection con, CancellationToken ct)
+    {
+        return (await con.QueryAsync<PoolDifficulty>("SELECT poolid, SUM(difficulty) as difficulty FROM shares GROUP BY poolid")).ToArray();
     }
 }
